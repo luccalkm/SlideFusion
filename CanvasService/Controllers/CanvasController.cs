@@ -47,6 +47,7 @@ namespace CanvasService.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateCanvas(string id, [FromBody] Canvas updatedCanvas)
         {
+            updatedCanvas.ID = id;
             var result = await _canvasCollection.ReplaceOneAsync(c => c.ID == id, updatedCanvas);
             if (result.MatchedCount == 0)
             {
@@ -66,16 +67,23 @@ namespace CanvasService.Controllers
             return NoContent();
         }
 
-        [HttpPut("{id}/slides")]
-        public async Task<IActionResult> AddSlide(string id, [FromBody] Slide slide)
+        [HttpPut("{id}/slides/{slideId}")]
+        public async Task<IActionResult> UpdateSlide(string id, string slideId, [FromBody] Slide updatedSlide)
         {
-            var update = Builders<Canvas>.Update.AddToSet(c => c.Slides, slide);
-            var result = await _canvasCollection.UpdateOneAsync(c => c.ID == id, update);
+            var filter = Builders<Canvas>.Filter.And(
+                Builders<Canvas>.Filter.Eq(c => c.ID, id),
+                Builders<Canvas>.Filter.ElemMatch(c => c.Slides, s => s.ID == slideId)
+            );
+
+            var update = Builders<Canvas>.Update
+                .Set("Slides.$", updatedSlide);
+
+            var result = await _canvasCollection.UpdateOneAsync(filter, update);
             if (result.MatchedCount == 0)
             {
                 return NotFound();
             }
-            return NoContent();
+            return Ok(result);
         }
 
         [HttpDelete("{id}/slides/{slideId}")]
@@ -87,42 +95,7 @@ namespace CanvasService.Controllers
             {
                 return NotFound();
             }
-            return NoContent();
-        }
-
-        [HttpPut("{id}/slides/{slideId}/objects")]
-        public async Task<IActionResult> AddSlideObject(string id, string slideId, [FromBody] SlideObject slideObject)
-        {
-            var filter = Builders<Canvas>.Filter.And(
-                Builders<Canvas>.Filter.Eq(c => c.ID, id),
-                Builders<Canvas>.Filter.ElemMatch(c => c.Slides, s => s.ID == slideId)
-            );
-
-            var update = Builders<Canvas>.Update.AddToSet("Slides.$.SlideObjects", slideObject);
-            var result = await _canvasCollection.UpdateOneAsync(filter, update);
-            if (result.MatchedCount == 0)
-            {
-                return NotFound();
-            }
-            return NoContent();
-        }
-
-        [HttpDelete("{id}/slides/{slideId}/objects/{objectId}")]
-        public async Task<IActionResult> RemoveSlideObject(string id, string slideId, string objectId)
-        {
-            var filter = Builders<Canvas>.Filter.And(
-                Builders<Canvas>.Filter.Eq(c => c.ID, id),
-                Builders<Canvas>.Filter.ElemMatch(c => c.Slides, s => s.ID == slideId)
-            );
-
-            var update = Builders<Canvas>.Update
-                .PullFilter("Slides.$.SlideObjects", Builders<SlideObject>.Filter.Eq(so => so.ID, objectId));
-            var result = await _canvasCollection.UpdateOneAsync(filter, update);
-            if (result.MatchedCount == 0)
-            {
-                return NotFound();
-            }
-            return NoContent();
+            return Ok(result);
         }
     }
 }
