@@ -1,43 +1,41 @@
-// src/components/layout/Header/Header.tsx
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
-import { Box, IconButton } from '@mui/material';
+import { Box, IconButton, styled } from '@mui/material';
 import { Login, Logout, Settings } from '@mui/icons-material';
 
 type Props = {}
 
+
+const StyledIconButton = styled(IconButton)(() => ({
+    color: 'inherit'
+}));
+
 export default function Header({}: Props) {
     return (
-        <Box flexGrow={1}>
-          <AppBar 
-            position="fixed" 
-            sx={{zIndex: (theme) => theme.zIndex.drawer + 1, paddingX: 10 }} 
-            color="primary"
-          >
-            <Toolbar>
-              <Typography noWrap variant="h6">
-                OnionGallery
-              </Typography>
-              {/* TODO: login */}
+        <AppBar position="fixed" color="primary">
+            <Toolbar sx={{display: 'flex', justifyContent: 'space-between' }}>
+                <Typography noWrap variant="h6">
+                    OnionGallery
+                </Typography>
+                {/* TODO: login */}
                 {true ? (
-                <IconButton color="inherit">
+                    <StyledIconButton>
                         <Login />
-                </IconButton>
+                    </StyledIconButton>
                 ) 
                 : 
                 (
                     <>
-                        <IconButton color='inherit'>
+                        <StyledIconButton>
                             <Logout />
-                        </IconButton>
-                        <IconButton color='inherit'>
+                        </StyledIconButton>
+                        <StyledIconButton>
                             <Settings />
-                        </IconButton>
+                        </StyledIconButton>
                     </>
                 )}
             </Toolbar>
-          </AppBar>
-        </Box>
-      );
+        </AppBar>
+    );
 }

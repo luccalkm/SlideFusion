@@ -1,16 +1,14 @@
 import { Box } from '@mui/material'
 import Home from './components/views/Home/Home'
 import Header from './components/layout/Header/Header'
-import Sidebar from './components/layout/Sidebar/Sidebar'
-import MainContent from './components/layout/MainContent/MainContent'
 
 function App() {
-
   return (
-    <Box sx={{display: 'flex'}}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
       <Header />
-      <Sidebar/>
-      <MainContent />
+      <Box sx={{ display: 'flex', flexGrow: 1 }}>
+        <Home />
+      </Box>
     </Box>
   )
 }

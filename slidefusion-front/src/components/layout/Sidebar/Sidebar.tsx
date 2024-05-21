@@ -1,8 +1,7 @@
-// src/components/layout/Sidebar/Sidebar.tsx
-import { useState } from 'react';
-import { Home, InfoRounded, ChevronLeft, ChevronRight } from "@mui/icons-material";
-import { Divider, Drawer, List, ListItemButton, ListItemIcon, Toolbar, IconButton, ListItemText } from "@mui/material";
-import { styled, useTheme } from '@mui/material/styles';
+import { useState, useRef } from 'react';
+import { Home, InfoRounded, Menu } from "@mui/icons-material";
+import { Drawer, List, ListItemButton, ListItemIcon, ListItemText, IconButton, Divider } from "@mui/material";
+import { styled } from '@mui/material/styles';
 
 const drawerWidth = 240;
 const closedDrawerWidth = 60;
@@ -20,35 +19,48 @@ const StyledDrawer = styled(Drawer, {
       duration: theme.transitions.duration.enteringScreen,
     }),
     overflowX: 'hidden',
+    top: '64px', // Altura do AppBar
   },
 }));
 
 export default function Sidebar() {
-  const [open, setOpen] = useState(true);
-  const theme = useTheme();
+  const [isOpen, setIsOpen] = useState(true);
+  const drawerRef = useRef(null);
 
-  const handleDrawerToggle = () => {
-    setOpen(!open);
-  };
+  const handleClickOutside = (event: any) => {
+    if (drawerRef.current && !(drawerRef.current as any).contains(event.target)) {
+      setIsOpen(false);
+    }
+  }
+
+  const handleDrawerClick = (event: any) => {
+    event.stopPropagation();
+    if (!isOpen) {
+      setIsOpen(true);
+    }
+  }
+
+  // Adiciona evento global para fechar sidebar
+  document.addEventListener('mousedown', handleClickOutside);
 
   return (
-    <StyledDrawer variant="permanent" open={open}>
-      <Toolbar>
-        <IconButton onClick={handleDrawerToggle}>
-          {open ? <ChevronLeft /> : <ChevronRight />}
-        </IconButton>
-      </Toolbar>
-      <Divider />
-      <List>
-        {['Home', 'About'].map((text, index) => (
-          <ListItemButton key={text}>
-            <ListItemIcon>
-              {index % 2 === 0 ? <Home color="primary" /> : <InfoRounded color="secondary" />}
-            </ListItemIcon>
-            {open && <ListItemText primary={text} />}
-          </ListItemButton>
-        ))}
-      </List>
-    </StyledDrawer>
+    <div ref={drawerRef}>
+      <StyledDrawer
+        variant="permanent"
+        open={isOpen}
+        onClick={handleDrawerClick}
+      >
+        <List>
+          {['Home', 'About'].map((text, index) => (
+            <ListItemButton key={text}>
+              <ListItemIcon>
+                {index % 2 === 0 ? <Home color="primary" /> : <InfoRounded color="secondary" />}
+              </ListItemIcon>
+              {isOpen && <ListItemText primary={text} />}
+            </ListItemButton>
+          ))}
+        </List>
+      </StyledDrawer>
+    </div>
   );
 }
