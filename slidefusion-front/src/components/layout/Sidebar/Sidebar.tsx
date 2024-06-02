@@ -1,7 +1,8 @@
 import { useState, useRef } from 'react';
-import { Home, InfoRounded, Menu } from "@mui/icons-material";
-import { Drawer, List, ListItemButton, ListItemIcon, ListItemText, IconButton, Divider } from "@mui/material";
+import { Drawer, List, ListItemButton, ListItemIcon, ListItemText, Grid, Typography } from "@mui/material";
 import { styled } from '@mui/material/styles';
+import { RouteItem } from "../../types/RouteItem";
+import { Link } from "react-router-dom";
 
 const drawerWidth = 240;
 const closedDrawerWidth = 60;
@@ -19,21 +20,25 @@ const StyledDrawer = styled(Drawer, {
       duration: theme.transitions.duration.enteringScreen,
     }),
     overflowX: 'hidden',
-    top: '64px', // Altura do AppBar
+    top: '64px',
   },
 }));
 
-export default function Sidebar() {
+type Props = {
+    items: RouteItem[];
+}
+
+export default function Sidebar({ items }: Props) {
   const [isOpen, setIsOpen] = useState(true);
   const drawerRef = useRef(null);
 
-  const handleClickOutside = (event: any) => {
+  const handleClickOutside = (event: MouseEvent) => {
     if (drawerRef.current && !(drawerRef.current as any).contains(event.target)) {
       setIsOpen(false);
     }
   }
 
-  const handleDrawerClick = (event: any) => {
+  const handleDrawerClick = (event: MouseEvent) => {
     event.stopPropagation();
     if (!isOpen) {
       setIsOpen(true);
@@ -51,14 +56,28 @@ export default function Sidebar() {
         onClick={handleDrawerClick}
       >
         <List>
-          {['Home', 'About'].map((text, index) => (
-            <ListItemButton key={text}>
-              <ListItemIcon>
-                {index % 2 === 0 ? <Home color="primary" /> : <InfoRounded color="secondary" />}
-              </ListItemIcon>
-              {isOpen && <ListItemText primary={text} />}
-            </ListItemButton>
-          ))}
+          <Grid container direction="column">
+            {items.map((item) => (
+              <Grid item key={item.displayName}>
+                <ListItemButton 
+                    component={Link}
+                    to={item.link}    
+                >
+                  <ListItemIcon>
+                    {item.icon}
+                  </ListItemIcon>
+                  {isOpen && 
+                  <ListItemText 
+                    primary={
+                        <Typography variant="body2">
+                          {item.displayName}
+                        </Typography>
+                    } />
+                  }
+                </ListItemButton>
+              </Grid>
+            ))}
+          </Grid>
         </List>
       </StyledDrawer>
     </div>
