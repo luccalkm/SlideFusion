@@ -1,5 +1,5 @@
 import { AccountBox, ImageSearch, PostAdd } from '@mui/icons-material';
-import { RouteItem } from "../types/RouteItem";
+import { RouteItem } from "../../utils/types/RouteItem";
 
 export const routeItems: RouteItem[] = [
     {

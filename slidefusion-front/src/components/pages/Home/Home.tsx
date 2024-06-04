@@ -2,7 +2,7 @@ import { Box, ButtonBase, CardContent, Grid, Icon, Typography } from '@mui/mater
 import PresentationList from '../../composite/PresentationMini/PresentationList';
 import NoPresentation from "../../composite/animations/NoPresentation";
 import { routeItems } from "../../routes/routes.tsx";
-import { RouteItem } from "../../types/RouteItem.ts";
+import { RouteItem } from "../../../utils/types/RouteItem.ts";
 import { Link } from "react-router-dom";
 import { MainBox } from "../../layout/General/MainBox.tsx";
 

@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { Drawer, List, ListItemButton, ListItemIcon, ListItemText, Grid, Typography } from "@mui/material";
 import { styled } from '@mui/material/styles';
-import { RouteItem } from "../../types/RouteItem";
+import { RouteItem } from "../../../utils/types/RouteItem";
 import { Link } from "react-router-dom";
 
 const drawerWidth = 240;
