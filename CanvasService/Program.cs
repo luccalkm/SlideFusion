@@ -19,19 +19,33 @@ builder.Services.AddSingleton<IMongoClient, MongoClient>(sp =>
     return new MongoClient(mongoClientSettings);
 });
 
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.ListenAnyIP(5000);
+    options.ListenAnyIP(5001, listenOptions =>
+    {
+        listenOptions.UseHttps();
+    });
+
+    options.ListenLocalhost(7500);
+    options.ListenLocalhost(7501, listenOptions =>
+    {
+        listenOptions.UseHttps();
+    });
+});
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("LocalhostOnly",
         policy => policy
-            .SetIsOriginAllowed(origin => new Uri(origin).Host.Contains("localhost"))
-            //.WithOrigins("http://localhost:5173")
+            //.SetIsOriginAllowed(origin => new Uri(origin).Host.Contains("localhost"))
+            .WithOrigins("http://localhost:5173")
             .AllowAnyMethod()
             .AllowAnyHeader());
 });
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -40,7 +54,7 @@ if (app.Environment.IsDevelopment())
 
 await DbInitializer.InitializeAsync(app);
 
-app.UseCors("AppOrigins");
+app.UseCors("LocalhostOnly");
 
 app.UseHttpsRedirection();
 
