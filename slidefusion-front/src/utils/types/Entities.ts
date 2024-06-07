@@ -13,20 +13,20 @@ export interface SlideObject {
     y: number;
     width: number;
     height: number;
+    backgroundColor: string;
+    backgroundImageUrl?: string;
 }
 
 export interface Slide {
     id: string;
     order: number;
-    slideObjects: SlideObject[];
+    backgroundColor: string | undefined;
+    backgroundImageUrl?: string | undefined;
+    slideObjects?: SlideObject[];
 }
 
 export interface Canvas {
     id: string;
     title: string;
     slides: Slide[];
-    backgroundColor: string;
-    backgroundImage: string;
-    width: number;
-    height: number;
 }

@@ -1,10 +1,7 @@
-import { Box, ButtonBase, CardContent, Grid, Icon, Typography } from '@mui/material';
-import PresentationList from '../../composite/PresentationMini/PresentationList';
-import NoPresentation from "../../composite/animations/NoPresentation";
-import { routeItems } from "../../routes/routes.tsx";
-import { RouteItem } from "../../../utils/types/RouteItem.ts";
-import { Link } from "react-router-dom";
-import { MainBox } from "../../layout/General/MainBox.tsx";
+import { Box, Grid, Typography } from '@mui/material';
+import HomeButtons from "../../home/HomeButtons.tsx";
+import PresentationList from "../../home/PresentationList";
+import NoPresentation from "../../animations/NoPresentation.tsx";
 
 type Props = {
     presentations: Presentation[];
@@ -19,34 +16,7 @@ export default function Home({ presentations }: Props) {
                 container
                 gap={5}
             >
-                {routeItems.map((item: RouteItem) => {
-                    return (
-                        <ButtonBase
-                            key={item?.displayName}
-                            component={Link}
-                            to={item.link}
-                            sx={{
-                                gap: 5,
-                                padding: 2,
-                                display: 'flex',
-                                border: '1px solid',
-                                borderColor: 'divider',
-                                borderRadius: 1,
-                            }}
-                        >
-                            <CardContent
-                                sx={{ display: 'flex', gap: 2 }}
-                            >
-                                <Icon>
-                                    {item?.icon}
-                                </Icon>
-                                <Typography>
-                                    {item?.displayName}
-                                </Typography>
-                            </CardContent>
-                        </ButtonBase>
-                    );
-                })}
+                <HomeButtons />
             </Grid>
             <Grid
                 xs={4}

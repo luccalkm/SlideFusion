@@ -16,7 +16,7 @@ export default function Header() {
     return (
         <AppBar position="fixed" color="primary">
             <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
+                <Link onClick={() => setAuth(!auth)} to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
                     <Typography
                         noWrap
                         variant="h6"

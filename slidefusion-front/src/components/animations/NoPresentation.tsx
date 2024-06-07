@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Lottie, { Options } from 'react-lottie';
-import noPresentationsAnim from './noPresentations.json';
+import noPresentationsAnim from '../../assets/animations/noPresentations.json';
 import { Box } from "@mui/material";
 
 type Props = {

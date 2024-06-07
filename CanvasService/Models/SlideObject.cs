@@ -19,5 +19,7 @@ namespace CanvasService.Models
         public int Y { get; set; }
         public int Width { get; set; }
         public int Height { get; set; }
+        public string BackgroundColor { get; set; }
+        public string BackgroundImage { get; set; }
     }
 }

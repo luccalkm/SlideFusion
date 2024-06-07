@@ -1,13 +1,14 @@
-import { Canvas } from "../types/Entities";
-import slidefusionApi from './axiosConfig';
+import { Canvas } from "../../types/Entities";
+import slidefusionApi from '../axiosConfig';
 
-class PresentationService {
+class CanvasService {
+    
     async getCanvas() {
         try {
             const response = await slidefusionApi.get('/canvas');
             return response.data;
         } catch (error) {
-            console.error('Error fetching presentations:', error);
+            console.error('Error fetching canvas:', error);
             throw error;
         }
     }
@@ -15,35 +16,35 @@ class PresentationService {
     async createOrUpdateCanvas(canvas: Canvas) {
         try {
             if (canvas.id) {
-                return this.updatePresentation(canvas);
+                return this.updateCanvas(canvas);
             } else {
-                return this.createPresentation(canvas);
+                return this.createCanvas(canvas);
             }
         } catch (error) {
-            console.error('Error creating or updating presentation:', error);
+            console.error('Error creating or updating canvas:', error);
             throw error;
         }
     }
 
-    private async createPresentation(canvas: Canvas) {
+    private async createCanvas(canvas: Canvas) {
         try {
             const response = await slidefusionApi.post('/canvas', canvas);
             return response.data;
         } catch (error) {
-            console.error('Error creating presentation:', error);
+            console.error('Error creating canvas:', error);
             throw error;
         }
     }
 
-    private async updatePresentation(canvas: Canvas) {
+    private async updateCanvas(canvas: Canvas) {
         try {
             const response = await slidefusionApi.put(`/canvas/${canvas.id}`, canvas);
             return response.data;
         } catch (error) {
-            console.error('Error updating presentation:', error);
+            console.error('Error updating canvas:', error);
             throw error;
         }
     }
 }
 
-export default PresentationService;
+export default CanvasService;
