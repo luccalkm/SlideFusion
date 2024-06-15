@@ -53,6 +53,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
                 ] as Slide[]
             };
 
+            setSelectedSlideIndex(0);
             setCanvasData(newCanvas);
             setIsLoaded(true);
         }
