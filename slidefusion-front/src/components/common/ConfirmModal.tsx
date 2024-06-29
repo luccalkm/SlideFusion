@@ -1,6 +1,8 @@
 
 import { Button, Modal, Box, Typography, Divider } from "@mui/material";
+import { useContext } from "react";
 import { useNavigate } from "react-router-dom";
+import { CanvasContext } from "../../context/CanvasContext";
 
 const style = {
     position: 'absolute',
@@ -23,10 +25,11 @@ type Props = {
 
 export default function ConfirmModal({ open, handleClose, title, text }: Props) {
     const navigate = useNavigate();
+    const { actions } = useContext(CanvasContext);
 
     const handleClearSessionStorage = () => {
         navigate('/');
-        sessionStorage.clear();
+        actions?.clearData();
     };
 
     return (

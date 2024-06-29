@@ -15,6 +15,8 @@ export interface ICanvasContext {
         createNewCanvas: () => void;
         loadCanvasDataFromSession: () => void;
         setSelectedSlideIndex: (index: number) => void;
+        updateObjectPosition: (objectId: string, newPosition: { x: number, y: number }) => void;
+        clearData: () => void;
     };
 }
 
@@ -59,6 +61,26 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
         }
     };
 
+    const updateObjectPosition = (objectId: string, newPosition: { x: number, y: number }) => {
+        setCanvasData((prevCanvasData) => {
+            const updatedSlides = prevCanvasData.slides.map((slide, index) => {
+                if (index === selectedSlideIndex) {
+                    return {
+                        ...slide,
+                        slideObjects: slide?.slideObjects?.map((object) =>
+                            object.id === objectId ? { ...object, position: newPosition } : object
+                        )
+                    };
+                }
+                return slide;
+            });
+            return {
+                ...prevCanvasData,
+                slides: updatedSlides
+            };
+        });
+    };
+
     const loadCanvasDataFromSession = () => {
         const storedCanvasData = sessionStorage.getItem('canvasData');
         if (storedCanvasData) {
@@ -70,10 +92,16 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
         setIsLoaded(true);
     };
 
+    const clearData = () => {
+        sessionStorage.removeItem('canvasData');
+        setCanvasData({} as Canvas);
+        setIsLoaded(false);
+    }
+
     return (
         <CanvasContext.Provider value={{
             state: { canvasData, isLoaded, selectedSlideIndex },
-            actions: { setCanvasData, createNewCanvas, loadCanvasDataFromSession, setSelectedSlideIndex }
+            actions: { setCanvasData, createNewCanvas, loadCanvasDataFromSession, setSelectedSlideIndex, updateObjectPosition, clearData }
         }}>
             {children}
         </CanvasContext.Provider>

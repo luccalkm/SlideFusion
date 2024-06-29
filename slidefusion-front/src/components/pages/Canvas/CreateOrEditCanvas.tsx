@@ -1,116 +1,124 @@
 import { v4 as uuidv4 } from 'uuid';
 import { useContext, useEffect, useState } from 'react';
 import { Box, Button, TextField, Grid, ButtonGroup } from '@mui/material';
-import { CanvasContext } from '../../../context/CanvasContext';
-import Slide from '../../canvas/Slide';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ArrowBack, ChangeHistoryOutlined, CropOriginalOutlined, CropSquareSharp, Delete, Save, TextFieldsOutlined } from "@mui/icons-material";
+import { ArrowBack, ChangeHistoryOutlined, CropOriginalOutlined, CropSquareSharp, Delete, EvStationOutlined, Save, TextFieldsOutlined } from "@mui/icons-material";
+import { CanvasContext } from '../../../context/CanvasContext';
 import ConfirmModal from "../../common/ConfirmModal";
 import AddSlideButton from "../../canvas/AddSlideButton";
+import { ESlideObject, Slide, TextObject } from "../../../utils/types/Entities";
+import CanvaSlide from "../../canvas/CanvaSlide";
 
-function CreateOrEditCanvas() {
+const CreateOrEditCanvas = () => {
     const [openConfirmModal, setOpenConfirmModal] = useState(false);
-    const handleOpen = () => setOpenConfirmModal(true);
-
+    const { state, actions } = useContext(CanvasContext);
     const navigate = useNavigate();
     const location = useLocation();
-    const { state, actions } = useContext(CanvasContext);
 
     useEffect(() => {
         actions?.loadCanvasDataFromSession();
     }, []);
 
-    const handleBackClick = () => {
-        if (location.key === 'default') {
-            navigate('/');
-        } else {
-            navigate(-1);
-        }
-    };
-
-    const handleClick = async () => {
-        if (state?.canvasData?.slides && state?.canvasData?.slides.length > 0)
-            actions?.setCanvasData({ ...state?.canvasData, slides: state?.canvasData?.slides.map(slide => ({ ...slide, backgroundColor: '#fff' })) });
-    };
-
     useEffect(() => {
-        if (!state?.canvasData?.slides || state?.canvasData?.slides.length === 0) {
+        if (!state?.canvasData?.slides?.length) {
             actions?.createNewCanvas();
-        }
-    }, []);
-
-    useEffect(() => {
-        console.log(state?.canvasData?.slides, state?.selectedSlideIndex)
-        if (state?.canvasData?.slides && state?.selectedSlideIndex === undefined) {
-            actions?.setSelectedSlideIndex(0);
         }
     }, [state?.canvasData?.slides]);
 
+    useEffect(() => {
+        if (state?.canvasData?.slides && state?.selectedSlideIndex === undefined) {
+            actions?.setSelectedSlideIndex(0);
+        }
+    }, [state?.canvasData?.slides, actions]);
+
+    const handleBackClick = () => {
+        navigate(location.key === 'default' ? '/' : -1);
+    };
+
+    const handleClick = async () => {
+        if (state?.canvasData?.slides?.length) {
+            actions?.setCanvasData({
+                ...state.canvasData,
+                slides: state.canvasData.slides.map(slide => ({ ...slide, backgroundColor: '#fff' }))
+            });
+        }
+    };
+
+    const createNewSlide = (): Slide => ({
+        id: uuidv4(),
+        order: state?.canvasData.slides.length || 0,
+        backgroundColor: '#ffffff',
+        backgroundImageUrl: '',
+        slideObjects: []
+    });
 
     const addNewSlide = () => {
-        const newSlide = {
-            id: uuidv4(),
-            order: state?.canvasData.slides.length,
-            backgroundColor: '#ffffff',
-            backgroundImageUrl: '',
-            slideObjects: []
-        };
+        const newSlide = createNewSlide();
         actions?.setCanvasData({
             ...state?.canvasData,
-            slides: [...state?.canvasData.slides, newSlide],
+            slides: [...state?.canvasData?.slides, newSlide]
         });
-        actions?.setSelectedSlideIndex(state?.canvasData?.slides?.length);
+        actions?.setSelectedSlideIndex(state?.canvasData?.slides.length);
+    };
+
+    const createTextObject = (objectType: ESlideObject): TextObject => ({
+        id: uuidv4(),
+        type: objectType,
+        position: { x: 25, y: 25 },
+        size: { width: 16, height: 16 },
+        content: 'Texto',
+        color: '#000000',
+        fontSize: 16,
+        fontFamily: 'Arial',
+        fontWeight: 'normal',
+        italic: false,
+        underline: false,
+        align: 'left',
+        order: 0,
+        backgroundColor: ""
+    });
+
+    const addTextObject = () => {
+        if (state?.selectedSlideIndex === undefined || !state?.canvasData?.slides) 
+            return;
+
+        const newObject = createTextObject(ESlideObject.Text);
+        actions?.setCanvasData({
+            ...state.canvasData,
+            slides: state.canvasData.slides.map((slide, index) => {
+                if (index === state.selectedSlideIndex) {
+                    return {
+                        ...slide,
+                        slideObjects: slide.slideObjects ? [...slide.slideObjects, newObject] : [newObject]
+                    };
+                }
+                return slide;
+            })
+        });
     };
 
     if (!state?.isLoaded) {
         return <div>Loading...</div>;
     }
 
+    const selectedSlide = state.canvasData?.slides?.[state.selectedSlideIndex];
+
     return (
         <Box sx={{ height: '72vh', minHeight: '72vh', maxHeight: '72vh', padding: 2 }}>
             <Button onClick={handleClick} sx={{ position: 'absolute', right: 0, top: 0, margin: 5 }} variant='contained'>
                 Testar funcionalidade da API
             </Button>
-            <Grid item
-                display={'flex'}
-                justifyContent={'space-between'}
-                alignItems={'center'}
-                marginBottom={5}
-            >
+            <Grid item display={'flex'} justifyContent={'space-between'} alignItems={'center'} marginBottom={5}>
                 <Box display='flex' gap={1}>
-                    <Button
-                        variant="outlined"
-                        onClick={handleBackClick}
-                    >
-                        <ArrowBack />
-                    </Button>
-                    <Button
-                        variant="outlined"
-                        color="error"
-                        onClick={handleOpen}
-                    >
-                        <Delete />
-                    </Button>
-                    <Button
-                        variant="outlined"
-                        color="success"
-                    >
-                        <Save />
-                    </Button>
+                    <Button variant="outlined" onClick={handleBackClick}><ArrowBack /></Button>
+                    <Button variant="outlined" color="error" onClick={() => setOpenConfirmModal(true)}><Delete /></Button>
+                    <Button variant="outlined" color="success"><Save /></Button>
                 </Box>
                 <ButtonGroup>
-                    <Button>
-                        <TextFieldsOutlined />
-                    </Button>
-                    <Button>
-                        <CropSquareSharp />
-                    </Button>
-                    <Button>
-                        <ChangeHistoryOutlined />
-                    </Button>
-                    <Button>
-                        <CropOriginalOutlined />
-                    </Button>
+                    <Button onClick={addTextObject}><TextFieldsOutlined /></Button>
+                    <Button><CropSquareSharp /></Button>
+                    <Button><ChangeHistoryOutlined /></Button>
+                    <Button><CropOriginalOutlined /></Button>
                 </ButtonGroup>
             </Grid>
             <Grid container direction="column" sx={{ height: '100%' }}>
@@ -133,17 +141,17 @@ function CreateOrEditCanvas() {
                                 gap={2} 
                                 width={'100%'} 
                                 height={'62vh'}
-                                paddingTop={2}
+                                paddingTop={0.5}
                                 sx={{overflowY: 'auto'}}
                             >
-                                {state?.canvasData?.slides.map((slide, index) => (
-                                    <Slide
+                                {state?.canvasData?.slides?.map((slide, index) => (
+                                    <CanvaSlide
                                         onClick={() => actions?.setSelectedSlideIndex(index)}
-                                        testContent={`Slide ${index + 1}`}
                                         key={slide.id}
                                         mini
                                         backgroundColor={slide.backgroundColor}
                                         backgroundImageUrl={slide.backgroundImageUrl}
+                                        objects={slide.slideObjects}
                                     />
                                 ))}
                                 <AddSlideButton onClick={addNewSlide} />
@@ -151,13 +159,13 @@ function CreateOrEditCanvas() {
                         </Box>
                     </Grid>
                     <Grid item xs={8.4} sx={{ height: '100%' }}>
-                        {state?.canvasData?.slides.length > 0 && state?.canvasData?.slides[state.selectedSlideIndex] && (
-                            <Slide
-                                testContent={`Slide ${state.selectedSlideIndex + 1}`}
+                        {selectedSlide && (
+                            <CanvaSlide
                                 editable
-                                key={state?.canvasData?.slides[state.selectedSlideIndex].id}
-                                backgroundColor={state?.canvasData?.slides[state.selectedSlideIndex].backgroundColor}
-                                backgroundImageUrl={state?.canvasData?.slides[state.selectedSlideIndex].backgroundImageUrl}
+                                key={selectedSlide.id}
+                                backgroundColor={selectedSlide.backgroundColor}
+                                backgroundImageUrl={selectedSlide.backgroundImageUrl}
+                                objects={selectedSlide.slideObjects}
                             />
                         )}
                     </Grid>
@@ -173,6 +181,6 @@ function CreateOrEditCanvas() {
             )}
         </Box>
     );
-}
+};
 
 export default CreateOrEditCanvas;

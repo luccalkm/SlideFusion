@@ -1,3 +1,5 @@
+import SlideObject from "../../components/canvas/CanvasSlideObject";
+
 export enum ESlideObject {
     Text = "Text",
     Image = "Image",
@@ -5,14 +7,29 @@ export enum ESlideObject {
     Shape = "Shape"
 }
 
+export interface TextObject extends SlideObject {
+    content: string;
+    color: string; 
+    fontSize: number;
+    fontFamily: string;
+    fontWeight: string;
+    italic: boolean;
+    underline: boolean;
+    align: string;
+}
+
 export interface SlideObject {
     id: string;
     type: ESlideObject;
     order: number;
-    x: number;
-    y: number;
-    width: number;
-    height: number;
+    position: {
+        x: number;
+        y: number;
+    }
+    size: {
+        width: number;
+        height: number;
+    }
     backgroundColor: string;
     backgroundImageUrl?: string;
 }
