@@ -1,51 +1,75 @@
-import { v4 as uuidv4 } from 'uuid';
 import { useContext, useEffect, useState } from 'react';
-import { Box, Button, TextField, Grid, ButtonGroup } from '@mui/material';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { ArrowBack, ChangeHistoryOutlined, CropOriginalOutlined, CropSquareSharp, Delete, EvStationOutlined, Save, TextFieldsOutlined } from "@mui/icons-material";
+import { Box, Button, Grid, ButtonGroup, TextField, Tooltip } from '@mui/material';
+import { useNavigate, useLocation, To } from 'react-router-dom';
+import { ArrowBack, ChangeHistoryOutlined, CropOriginalOutlined, CropSquareSharp, Delete, Save, TextFieldsOutlined } from "@mui/icons-material";
 import { CanvasContext } from '../../../context/CanvasContext';
 import ConfirmModal from "../../common/ConfirmModal";
-import AddSlideButton from "../../canvas/AddSlideButton";
-import { ESlideObject, Slide, TextObject } from "../../../utils/types/Entities";
-import CanvaSlide from "../../canvas/CanvaSlide";
+import CanvasSlideObject from "../../canvas/SlideObjects/CanvasSlideObject";
+import AddSlideButton from "../../canvas/SlideObjects/AddSlideButton";
+import { ESlideObject, Slide, SlideObject } from "../../../utils/types/Entities";
 
 const CreateOrEditCanvas = () => {
     const [openConfirmModal, setOpenConfirmModal] = useState(false);
     const { state, actions } = useContext(CanvasContext);
+    const [selectedObject, setSelectedObject] = useState<number | null>(null);
+    const [thumbnails, setThumbnails] = useState<Slide[]>([]);
     const navigate = useNavigate();
     const location = useLocation();
+    const baseMiniSlideProportion = 0.4;
+    const slideDefaultSize = { w: 70, h: 35};
+
+    const handleClickOutside = () => {
+        setSelectedObject(null);
+    };
 
     useEffect(() => {
         actions?.loadCanvasDataFromSession();
     }, []);
 
     useEffect(() => {
-        if (!state?.canvasData?.slides?.length) {
-            actions?.createNewCanvas();
+        if (state?.canvasData) {
+            setThumbnails(state.canvasData.slides);
         }
-    }, [state?.canvasData?.slides]);
+    }, [state?.canvasData]);
 
     useEffect(() => {
-        if (state?.canvasData?.slides && state?.selectedSlideIndex === undefined) {
-            actions?.setSelectedSlideIndex(0);
+        if (state?.canvasData?.slides) {
+            const slides = state.canvasData.slides.map(slide => ({
+                ...slide,
+                slideObjects: slide.slideObjects!.map(obj => ({ ...obj }))
+            }));
+            setThumbnails(slides);
         }
     }, [state?.canvasData?.slides, actions]);
 
+
     const handleBackClick = () => {
-        navigate(location.key === 'default' ? '/' : -1);
+        navigate((location.key === 'default' ? '/' : -1) as To);
     };
 
-    const handleClick = async () => {
-        if (state?.canvasData?.slides?.length) {
-            actions?.setCanvasData({
-                ...state.canvasData,
-                slides: state.canvasData.slides.map(slide => ({ ...slide, backgroundColor: '#fff' }))
-            });
-        }
+    if (!state?.isLoaded) {
+        return <div>Loading...</div>;
+    }
+
+    const handleTestAdd = () => {
+        const newObject: SlideObject = {
+            id: `${state.canvasData.slides[state.selectedSlideIndex].slideObjects!.length + 1}`,
+            position: { x: 10, y: 10 },
+            size: { width: 100, height: 50 },
+            type: ESlideObject.Shape,
+            order: 0,
+            backgroundColor: ''
+        };
+        actions?.setCanvasData(prevState => {
+            const updatedSlides = [...prevState.slides];
+            updatedSlides[state.selectedSlideIndex].slideObjects!.push(newObject);
+            return { ...prevState, slides: updatedSlides };
+        });
+        setSelectedObject(state.canvasData.slides[state.selectedSlideIndex].slideObjects!.length - 1);
     };
 
     const createNewSlide = (): Slide => ({
-        id: uuidv4(),
+        id: "a",
         order: state?.canvasData.slides.length || 0,
         backgroundColor: '#ffffff',
         backgroundImageUrl: '',
@@ -54,122 +78,76 @@ const CreateOrEditCanvas = () => {
 
     const addNewSlide = () => {
         const newSlide = createNewSlide();
-        actions?.setCanvasData({
-            ...state?.canvasData,
-            slides: [...state?.canvasData?.slides, newSlide]
-        });
+        actions?.setCanvasData(prevState => ({
+            ...prevState,
+            slides: [...prevState.slides, newSlide]
+        }));
         actions?.setSelectedSlideIndex(state?.canvasData?.slides.length);
     };
 
-    const createTextObject = (objectType: ESlideObject): TextObject => ({
-        id: uuidv4(),
-        type: objectType,
-        position: { x: 25, y: 25 },
-        size: { width: 16, height: 16 },
-        content: 'Texto',
-        color: '#000000',
-        fontSize: 16,
-        fontFamily: 'Arial',
-        fontWeight: 'normal',
-        italic: false,
-        underline: false,
-        align: 'left',
-        order: 0,
-        backgroundColor: ""
-    });
-
-    const addTextObject = () => {
-        if (state?.selectedSlideIndex === undefined || !state?.canvasData?.slides) 
-            return;
-
-        const newObject = createTextObject(ESlideObject.Text);
-        actions?.setCanvasData({
-            ...state.canvasData,
-            slides: state.canvasData.slides.map((slide, index) => {
-                if (index === state.selectedSlideIndex) {
-                    return {
-                        ...slide,
-                        slideObjects: slide.slideObjects ? [...slide.slideObjects, newObject] : [newObject]
-                    };
-                }
-                return slide;
-            })
-        });
-    };
-
-    if (!state?.isLoaded) {
-        return <div>Loading...</div>;
-    }
-
-    const selectedSlide = state.canvasData?.slides?.[state.selectedSlideIndex];
-
     return (
-        <Box sx={{ height: '72vh', minHeight: '72vh', maxHeight: '72vh', padding: 2 }}>
-            <Button onClick={handleClick} sx={{ position: 'absolute', right: 0, top: 0, margin: 5 }} variant='contained'>
-                Testar funcionalidade da API
-            </Button>
-            <Grid item display={'flex'} justifyContent={'space-between'} alignItems={'center'} marginBottom={5}>
-                <Box display='flex' gap={1}>
-                    <Button variant="outlined" onClick={handleBackClick}><ArrowBack /></Button>
-                    <Button variant="outlined" color="error" onClick={() => setOpenConfirmModal(true)}><Delete /></Button>
-                    <Button variant="outlined" color="success"><Save /></Button>
-                </Box>
-                <ButtonGroup>
-                    <Button onClick={addTextObject}><TextFieldsOutlined /></Button>
-                    <Button><CropSquareSharp /></Button>
-                    <Button><ChangeHistoryOutlined /></Button>
-                    <Button><CropOriginalOutlined /></Button>
-                </ButtonGroup>
-            </Grid>
-            <Grid container direction="column" sx={{ height: '100%' }}>
-                <Grid item container gap={3} sx={{ display: 'flex', justifyContent: 'space-between', flexGrow: 1 }}>
-                    <Grid item xs={3} sx={{ height: '100%' }}>
-                        <Box sx={{ height: '100%', display: 'flex', alignItems: 'center', flexDirection: 'column', justifyContent: 'center' }}>
-                            <TextField
-                                fullWidth
-                                label="Título da apresentação"
-                                variant="standard"
-                                value={state?.canvasData?.title}
-                                onChange={(e) => actions?.setCanvasData({ ...state.canvasData, title: e.target.value })}
-                                sx={{ marginBottom: 2 }}
-                            />
-                            <Box 
-                                display={'flex'} 
-                                position={'relative'}
-                                alignItems={'center'} 
-                                flexDirection={'column'} 
-                                gap={2} 
-                                width={'100%'} 
-                                height={'62vh'}
-                                paddingTop={0.5}
-                                sx={{overflowY: 'auto'}}
-                            >
-                                {state?.canvasData?.slides?.map((slide, index) => (
-                                    <CanvaSlide
-                                        onClick={() => actions?.setSelectedSlideIndex(index)}
-                                        key={slide.id}
-                                        mini
-                                        backgroundColor={slide.backgroundColor}
-                                        backgroundImageUrl={slide.backgroundImageUrl}
-                                        objects={slide.slideObjects}
-                                    />
-                                ))}
-                                <AddSlideButton onClick={addNewSlide} />
-                            </Box>
-                        </Box>
-                    </Grid>
-                    <Grid item xs={8.4} sx={{ height: '100%' }}>
-                        {selectedSlide && (
-                            <CanvaSlide
-                                editable
-                                key={selectedSlide.id}
-                                backgroundColor={selectedSlide.backgroundColor}
-                                backgroundImageUrl={selectedSlide.backgroundImageUrl}
-                                objects={selectedSlide.slideObjects}
-                            />
-                        )}
-                    </Grid>
+        <Grid container onClick={handleClickOutside} spacing={2} >
+            <Grid item xs={12}>
+                <Grid container display={'flex'} justifyContent={'space-between'} alignItems={'center'} marginBottom={5}>
+                    <Box display='flex' gap={1}>
+                        <Button variant="outlined" onClick={handleBackClick}><ArrowBack /></Button>
+                        <Button variant="outlined" color="error" onClick={() => setOpenConfirmModal(true)}><Delete /></Button>
+                        <Button variant="outlined" color="success"><Save /></Button>
+                    </Box>
+                    <ButtonGroup>
+                        <Button><TextFieldsOutlined /></Button>
+                        <Button onClick={handleTestAdd}><CropSquareSharp /></Button>
+                        <Button><ChangeHistoryOutlined /></Button>
+                        <Button><CropOriginalOutlined /></Button>
+                    </ButtonGroup>
                 </Grid>
+            </Grid>
+            <Grid height={"30rem"} item xs={12} md={4}>
+                <TextField
+                    fullWidth
+                    label="Título da apresentação"
+                    variant="standard"
+                    value={state?.canvasData?.title}
+                    onChange={(e) => actions?.setCanvasData({ ...state.canvasData, title: e.target.value })}
+                    sx={{ marginBottom: 2 }}
+                />
+                <Box height={"100%"} style={{ borderBottom: "2px solid #cecece", display: 'flex', flexDirection: "column", overflowX: 'auto', padding: '1rem', gap: '1rem' }}>
+                    {thumbnails.map((slide, index) => (
+                        <Tooltip title={"Slide " + (index + 1)} placement="top-end" followCursor>
+                            <div style={{ display: "flex", justifyContent: "space-between" }}>
+                                <Box minHeight={"12rem"} minWidth={'24rem'} key={slide.id} onClick={() => actions?.setSelectedSlideIndex(index)} style={{ cursor: 'pointer', width: `${slideDefaultSize.w * baseMiniSlideProportion}rem`, height: `${slideDefaultSize.h * baseMiniSlideProportion}rem`, boxShadow: "0px 0px 4px #000" }}>
+                                    <div style={{ pointerEvents: 'none', transform: `scale(${baseMiniSlideProportion})`, transformOrigin: 'top left' }}>
+                                        {slide.slideObjects!.map((object, index) => (
+                                            <CanvasSlideObject
+                                                key={object.id}
+                                                setSelectedObject={setSelectedObject}
+                                                selectedObject={selectedObject}
+                                                index={index}
+                                                object={object}
+                                                updateObjectPosition={actions!.updateObjectPosition}
+                                            />
+                                        ))}
+                                    </div>
+                                </Box>
+                            </div>
+                        </Tooltip>
+                    ))}
+                </Box>
+                <AddSlideButton onClick={addNewSlide} />
+            </Grid>
+            <Grid item xs={12} md={8}>
+                <Box sx={{ position: 'relative', margin: 'auto', width: '100%', height: 'auto', maxWidth: `${slideDefaultSize.w}rem`, maxHeight: `${slideDefaultSize.h}rem`, boxShadow: "0px 0px 2px #000", aspectRatio: '2 / 1' }}>
+                    {state!.canvasData!.slides[state.selectedSlideIndex]!.slideObjects!.map((object, index) => (
+                        <CanvasSlideObject
+                            key={object.id}
+                            setSelectedObject={setSelectedObject}
+                            selectedObject={selectedObject}
+                            index={index}
+                            object={object}
+                            updateObjectPosition={actions!.updateObjectPosition}
+                        />
+                    ))}
+                </Box>
             </Grid>
             {openConfirmModal && (
                 <ConfirmModal
@@ -179,7 +157,7 @@ const CreateOrEditCanvas = () => {
                     text={"Se a apresentação for excluída, não será possível recuperá-la."}
                 />
             )}
-        </Box>
+        </Grid>
     );
 };
 

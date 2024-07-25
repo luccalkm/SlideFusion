@@ -9,14 +9,16 @@ export interface ICanvasContext {
         canvasData: Canvas;
         isLoaded: boolean;
         selectedSlideIndex: number;
+        smallObjectSize: { width: number, height: number };
     };
     actions?: {
         setCanvasData: React.Dispatch<React.SetStateAction<Canvas>>;
         createNewCanvas: () => void;
         loadCanvasDataFromSession: () => void;
         setSelectedSlideIndex: (index: number) => void;
-        updateObjectPosition: (objectId: string, newPosition: { x: number, y: number }) => void;
+        updateObjectPosition: (objectId: string, newPosition: { x: number, y: number }, newSize?: { width: number, height: number }) => void;
         clearData: () => void;
+        setSmallObjectSize: (size: { width: number, height: number }) => void;
     };
 }
 
@@ -31,6 +33,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     });
     const [isLoaded, setIsLoaded] = useState(false);
     const [selectedSlideIndex, setSelectedSlideIndex] = useState(0);
+    const [smallObjectSize, setSmallObjectSize] = useState({ width: 0, height: 0 });
 
     useEffect(() => {
         if (isLoaded) {
@@ -40,7 +43,6 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
 
     const createNewCanvas = () => {
         if (!sessionStorage.getItem('canvasData')) {
-
             const newCanvas: Canvas = {
                 id: uuidv4(),
                 title: 'Nova apresentação',
@@ -54,21 +56,20 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
                     }
                 ] as Slide[]
             };
-
             setSelectedSlideIndex(0);
             setCanvasData(newCanvas);
             setIsLoaded(true);
         }
     };
 
-    const updateObjectPosition = (objectId: string, newPosition: { x: number, y: number }) => {
+    const updateObjectPosition = (objectId: string, newPosition: { x: number, y: number }, newSize?: { width: number, height: number }) => {
         setCanvasData((prevCanvasData) => {
             const updatedSlides = prevCanvasData.slides.map((slide, index) => {
                 if (index === selectedSlideIndex) {
                     return {
                         ...slide,
                         slideObjects: slide?.slideObjects?.map((object) =>
-                            object.id === objectId ? { ...object, position: newPosition } : object
+                            object.id === objectId ? { ...object, position: newPosition, size: newSize || object.size } : object
                         )
                     };
                 }
@@ -85,7 +86,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
         const storedCanvasData = sessionStorage.getItem('canvasData');
         if (storedCanvasData) {
             setCanvasData(JSON.parse(storedCanvasData));
-            setSelectedSlideIndex(selectedSlideIndex | 0);
+            setSelectedSlideIndex(selectedSlideIndex || 0);
         } else {
             createNewCanvas();
         }
@@ -96,14 +97,15 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
         sessionStorage.removeItem('canvasData');
         setCanvasData({} as Canvas);
         setIsLoaded(false);
-    }
+    };
 
     return (
         <CanvasContext.Provider value={{
-            state: { canvasData, isLoaded, selectedSlideIndex },
-            actions: { setCanvasData, createNewCanvas, loadCanvasDataFromSession, setSelectedSlideIndex, updateObjectPosition, clearData }
+            state: { canvasData, isLoaded, selectedSlideIndex, smallObjectSize },
+            actions: { setCanvasData, createNewCanvas, loadCanvasDataFromSession, setSelectedSlideIndex, updateObjectPosition, clearData, setSmallObjectSize }
         }}>
             {children}
         </CanvasContext.Provider>
     );
 };
+

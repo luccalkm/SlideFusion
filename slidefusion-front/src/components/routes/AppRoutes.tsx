@@ -18,7 +18,7 @@ const AppRoutes = () => {
                     <Header />
                     <Box sx={{ display: 'flex', flexGrow: 1 }}>
                         <Sidebar items={routeItems} />
-                        <Box sx={{ flexGrow: 1 }}>
+                        <Box sx={{ flexGrow: 1, overflow: "hidden" }}>
                             <MainBox component="main">
                                 <Routes>
                                     <Route path="/" element={<Home presentations={[]} />} />

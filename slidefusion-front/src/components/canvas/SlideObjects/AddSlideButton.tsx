@@ -11,7 +11,6 @@ const StyledBox = styled(Box)<Props>`
     box-shadow: 0px 0px 1px 1px rgba(0, 0, 0, 0.3);
     background: #640D6B;
     position: sticky;
-    bottom: 0px;
     min-height: 3rem;
     min-width: 3rem;
     height: 3rem;
@@ -20,6 +19,8 @@ const StyledBox = styled(Box)<Props>`
     justify-content: center;
     align-items: center;
     border-radius: 100%;
+    margin: 5px;
+    margin: 20px auto 5px auto;
 `;
 
 export const AddSlideButton = ({onClick}: Props) => {
