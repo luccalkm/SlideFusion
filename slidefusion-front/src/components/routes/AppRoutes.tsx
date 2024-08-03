@@ -2,7 +2,6 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { Box } from '@mui/material';
 import Header from "../common/Header";
 import { routeItems } from "../routes/routes";
-import { MainBox } from "../common/MainBox";
 import { CanvasProvider } from '../../context/CanvasContext';
 import Sidebar from "../common/Sidebar";
 import Gallery from "../pages/Canvas/Gallery";
@@ -19,14 +18,14 @@ const AppRoutes = () => {
                     <Box sx={{ display: 'flex', flexGrow: 1 }}>
                         <Sidebar items={routeItems} />
                         <Box sx={{ flexGrow: 1, overflow: "hidden" }}>
-                            <MainBox component="main">
+                            <>
                                 <Routes>
                                     <Route path="/" element={<Home presentations={[]} />} />
                                     <Route path="/gallery" element={<Gallery />} />
                                     <Route path="/create-presentation" element={<CreateOrEditCanvas/>} />
                                     <Route path="/profile" element={<Profile />} />
                                 </Routes>
-                            </MainBox>
+                            </>
                         </Box>
                     </Box>
                 </Box>

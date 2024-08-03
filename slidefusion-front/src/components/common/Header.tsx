@@ -1,20 +1,27 @@
-import AppBar from '@mui/material/AppBar';
-import Toolbar from '@mui/material/Toolbar';
-import Typography from '@mui/material/Typography';
-import { IconButton, styled } from '@mui/material';
+import React, { useState } from 'react';
+import { Box, Toolbar, Typography, IconButton, styled } from '@mui/material';
 import { Login, Logout, Settings } from '@mui/icons-material';
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link } from 'react-router-dom';
+import mainTheme from "../../styles/themes/mainTheme";
 
 const StyledIconButton = styled(IconButton)(() => ({
     color: 'inherit'
+}));
+
+const CustomAppBar = styled(Box)(() => ({
+    position: 'fixed',
+    width: '100%',
+    backgroundColor: mainTheme.palette.primary.main,
+    boxShadow: 'none', 
+    zIndex: 1100,
+    color: "white",
 }));
 
 export default function Header() {
     const [auth, setAuth] = useState(true);
 
     return (
-        <AppBar position="fixed" color="primary">
+        <CustomAppBar>
             <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
                 <Link onClick={() => setAuth(!auth)} to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
                     <Typography
@@ -24,24 +31,21 @@ export default function Header() {
                         OnionGallery
                     </Typography>
                 </Link>
-                {/* TODO: login */}
                 {auth ? (
                     <StyledIconButton>
                         <Login />
                     </StyledIconButton>
-                )
-                    :
-                    (
-                        <>
-                            <StyledIconButton>
-                                <Logout />
-                            </StyledIconButton>
-                            <StyledIconButton>
-                                <Settings />
-                            </StyledIconButton>
-                        </>
-                    )}
+                ) : (
+                    <>
+                        <StyledIconButton>
+                            <Logout />
+                        </StyledIconButton>
+                        <StyledIconButton>
+                            <Settings />
+                        </StyledIconButton>
+                    </>
+                )}
             </Toolbar>
-        </AppBar>
+        </CustomAppBar>
     );
 }

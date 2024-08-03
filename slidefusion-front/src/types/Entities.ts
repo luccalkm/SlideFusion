@@ -5,10 +5,20 @@ export enum ESlideObject {
     Shape = "Shape"
 }
 
+interface Position {
+    x: number;
+    y: number;
+}
+
+interface Size {
+    width: number;
+    height: number;
+}
+
 export interface TextObject extends SlideObject {
     content: string;
     color: string; 
-    fontSize: number;
+    fontSize: string;
     fontFamily: string;
     fontWeight: string;
     italic: boolean;
@@ -19,15 +29,9 @@ export interface TextObject extends SlideObject {
 export interface SlideObject {
     id: string;
     type: ESlideObject;
-    order: number;
-    position: {
-        x: number;
-        y: number;
-    }
-    size: {
-        width: number;
-        height: number;
-    }
+    depth: number;
+    position: Position;
+    size: Size;
     backgroundColor: string;
     backgroundImageUrl?: string;
     fontFamily?: string;
@@ -36,6 +40,7 @@ export interface SlideObject {
     italic?: boolean;
     color?: string;
     content?: string;
+    roundedDegree?: number;
 }
 
 export interface Slide {

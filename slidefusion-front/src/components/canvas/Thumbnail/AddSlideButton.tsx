@@ -1,7 +1,6 @@
 import styled from "@emotion/styled";
-import { AddOutlined } from "@mui/icons-material";
+import { Add } from "@mui/icons-material";
 import Box from "@mui/material/Box";
-import React from 'react';
 
 type Props = {
     onClick?: () => void;
@@ -20,13 +19,12 @@ const StyledBox = styled(Box)<Props>`
     align-items: center;
     border-radius: 100%;
     margin: 5px;
-    margin: 20px auto 5px auto;
 `;
 
 export const AddSlideButton = ({onClick}: Props) => {
   return (
     <StyledBox onClick={onClick}>
-        <AddOutlined sx={{ color: '#fff' }} />
+        <Add sx={{ color: '#fff' }} />
     </StyledBox>
   );
 };

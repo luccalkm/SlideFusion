@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import AddIcon from '@mui/icons-material/Add';
 import { useContext, useEffect, useState } from 'react';
 import { Box, Button, Grid, ButtonGroup, TextField, Tooltip } from '@mui/material';
 import { useNavigate, useLocation, To } from 'react-router-dom';
@@ -5,8 +7,9 @@ import { ArrowBack, ChangeHistoryOutlined, CropOriginalOutlined, CropSquareSharp
 import { CanvasContext } from '../../../context/CanvasContext';
 import ConfirmModal from "../../common/ConfirmModal";
 import CanvasSlideObject from "../../canvas/SlideObjects/CanvasSlideObject";
-import AddSlideButton from "../../canvas/SlideObjects/AddSlideButton";
-import { ESlideObject, Slide, SlideObject } from "../../../utils/types/Entities";
+import { ESlideObject, Slide, SlideObject } from "../../../types/Entities";
+import { Thumbnail } from "../../canvas/Thumbnail/Thumbnails";
+import { v4 as uuidv4 } from 'uuid';
 
 const CreateOrEditCanvas = () => {
     const [openConfirmModal, setOpenConfirmModal] = useState(false);
@@ -15,8 +18,17 @@ const CreateOrEditCanvas = () => {
     const [thumbnails, setThumbnails] = useState<Slide[]>([]);
     const navigate = useNavigate();
     const location = useLocation();
-    const baseMiniSlideProportion = 0.4;
-    const slideDefaultSize = { w: 70, h: 35};
+    const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
+
+    const slideDefaultSize = { width: 60, height: 25 };
+
+    const createNewSlide = (): Slide => ({
+        id: uuidv4(),
+        order: state?.canvasData.slides.length || 0,
+        backgroundColor: '#fff',
+        backgroundImageUrl: '',
+        slideObjects: []
+    });
 
     const handleClickOutside = () => {
         setSelectedObject(null);
@@ -42,7 +54,6 @@ const CreateOrEditCanvas = () => {
         }
     }, [state?.canvasData?.slides, actions]);
 
-
     const handleBackClick = () => {
         navigate((location.key === 'default' ? '/' : -1) as To);
     };
@@ -51,14 +62,14 @@ const CreateOrEditCanvas = () => {
         return <div>Loading...</div>;
     }
 
-    const handleTestAdd = () => {
+    const AddShapeObject = () => {
         const newObject: SlideObject = {
-            id: `${state.canvasData.slides[state.selectedSlideIndex].slideObjects!.length + 1}`,
+            id: uuidv4(),
             position: { x: 10, y: 10 },
             size: { width: 100, height: 50 },
             type: ESlideObject.Shape,
-            order: 0,
-            backgroundColor: ''
+            depth: 1,
+            backgroundColor: '#000'
         };
         actions?.setCanvasData(prevState => {
             const updatedSlides = [...prevState.slides];
@@ -67,14 +78,6 @@ const CreateOrEditCanvas = () => {
         });
         setSelectedObject(state.canvasData.slides[state.selectedSlideIndex].slideObjects!.length - 1);
     };
-
-    const createNewSlide = (): Slide => ({
-        id: "a",
-        order: state?.canvasData.slides.length || 0,
-        backgroundColor: '#ffffff',
-        backgroundImageUrl: '',
-        slideObjects: []
-    });
 
     const addNewSlide = () => {
         const newSlide = createNewSlide();
@@ -85,68 +88,113 @@ const CreateOrEditCanvas = () => {
         actions?.setSelectedSlideIndex(state?.canvasData?.slides.length);
     };
 
+    const onDragStart = (event: React.DragEvent<HTMLDivElement>, index: number) => {
+        setDraggingIndex(index);
+        const img = new Image();
+        img.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"></svg>';
+        event.dataTransfer.setDragImage(img, 0, 0);
+    };
+
+    const onDragOver = (event: React.DragEvent<HTMLDivElement>) => {
+        event.preventDefault();
+    };
+
+    const onDragOverThumbnail = (index: number) => {
+        if (draggingIndex === null) return;
+        if (draggingIndex === index) return;
+
+        const reorderedThumbnails = Array.from(thumbnails);
+        const [removed] = reorderedThumbnails.splice(draggingIndex, 1);
+        reorderedThumbnails.splice(index, 0, removed);
+
+        setDraggingIndex(index);
+        setThumbnails(reorderedThumbnails);
+    };
+
+    const onDragEnd = () => {
+        setDraggingIndex(null);
+        actions?.setCanvasData(prevState => ({
+            ...prevState,
+            slides: thumbnails
+        }));
+    };
+
     return (
-        <Grid container onClick={handleClickOutside} spacing={2} >
+        <Grid onClick={handleClickOutside} marginTop={'5rem'} height={"90vh"}>
             <Grid item xs={12}>
-                <Grid container display={'flex'} justifyContent={'space-between'} alignItems={'center'} marginBottom={5}>
-                    <Box display='flex' gap={1}>
-                        <Button variant="outlined" onClick={handleBackClick}><ArrowBack /></Button>
-                        <Button variant="outlined" color="error" onClick={() => setOpenConfirmModal(true)}><Delete /></Button>
-                        <Button variant="outlined" color="success"><Save /></Button>
-                    </Box>
-                    <ButtonGroup>
-                        <Button><TextFieldsOutlined /></Button>
-                        <Button onClick={handleTestAdd}><CropSquareSharp /></Button>
-                        <Button><ChangeHistoryOutlined /></Button>
-                        <Button><CropOriginalOutlined /></Button>
-                    </ButtonGroup>
+                <Grid container justifyContent={'space-between'} alignItems={'center'} padding={"1rem 2rem"}>
+                    <Grid item>
+                        <Box display='flex' gap={1}>
+                            <Button size="large" variant="outlined" onClick={handleBackClick}><ArrowBack /></Button>
+                            <Button size="large" variant="outlined" color="error" onClick={() => setOpenConfirmModal(true)}><Delete /></Button>
+                            <Button size="large" variant="outlined" color="success"><Save /></Button>
+                        </Box>
+                    </Grid>
+                    <Grid item display={'flex'} gap={2} alignItems={'center'}>
+                        <TextField
+                            variant="outlined"
+                            size="small"
+                            placeholder="Nova apresentação"
+                            value={state?.canvasData?.title}
+                            onChange={(e) => actions?.setCanvasData({ ...state.canvasData, title: e.target.value })}
+                        />
+                    </Grid>
+                    <Grid item>
+                        <ButtonGroup>
+                            <Button><TextFieldsOutlined /></Button>
+                            <Button onClick={AddShapeObject}><CropSquareSharp /></Button>
+                            <Button><ChangeHistoryOutlined /></Button>
+                            <Button><CropOriginalOutlined /></Button>
+                        </ButtonGroup>
+                    </Grid>
                 </Grid>
             </Grid>
-            <Grid height={"30rem"} item xs={12} md={4}>
-                <TextField
-                    fullWidth
-                    label="Título da apresentação"
-                    variant="standard"
-                    value={state?.canvasData?.title}
-                    onChange={(e) => actions?.setCanvasData({ ...state.canvasData, title: e.target.value })}
-                    sx={{ marginBottom: 2 }}
-                />
-                <Box height={"100%"} style={{ borderBottom: "2px solid #cecece", display: 'flex', flexDirection: "column", overflowX: 'auto', padding: '1rem', gap: '1rem' }}>
-                    {thumbnails.map((slide, index) => (
-                        <Tooltip title={"Slide " + (index + 1)} placement="top-end" followCursor>
-                            <div style={{ display: "flex", justifyContent: "space-between" }}>
-                                <Box minHeight={"12rem"} minWidth={'24rem'} key={slide.id} onClick={() => actions?.setSelectedSlideIndex(index)} style={{ cursor: 'pointer', width: `${slideDefaultSize.w * baseMiniSlideProportion}rem`, height: `${slideDefaultSize.h * baseMiniSlideProportion}rem`, boxShadow: "0px 0px 4px #000" }}>
-                                    <div style={{ pointerEvents: 'none', transform: `scale(${baseMiniSlideProportion})`, transformOrigin: 'top left' }}>
-                                        {slide.slideObjects!.map((object, index) => (
-                                            <CanvasSlideObject
-                                                key={object.id}
-                                                setSelectedObject={setSelectedObject}
-                                                selectedObject={selectedObject}
-                                                index={index}
-                                                object={object}
-                                                updateObjectPosition={actions!.updateObjectPosition}
-                                            />
-                                        ))}
-                                    </div>
-                                </Box>
-                            </div>
-                        </Tooltip>
-                    ))}
-                </Box>
-                <AddSlideButton onClick={addNewSlide} />
-            </Grid>
-            <Grid item xs={12} md={8}>
-                <Box sx={{ position: 'relative', margin: 'auto', width: '100%', height: 'auto', maxWidth: `${slideDefaultSize.w}rem`, maxHeight: `${slideDefaultSize.h}rem`, boxShadow: "0px 0px 2px #000", aspectRatio: '2 / 1' }}>
+            <Grid height={"70%"} container sx={{ borderTop: "2px solid #cecece", backgroundColor: "#e1e4e7", }}>
+                <Box sx={{ backgroundColor: state!.canvasData!.slides[state.selectedSlideIndex].backgroundColor, position: 'relative', margin: 'auto', width: `60rem`, height: `25rem`, boxShadow: "0px 0px 2px #000", aspectRatio: '2 / 1' }}>
                     {state!.canvasData!.slides[state.selectedSlideIndex]!.slideObjects!.map((object, index) => (
                         <CanvasSlideObject
                             key={object.id}
                             setSelectedObject={setSelectedObject}
                             selectedObject={selectedObject}
                             index={index}
-                            object={object}
-                            updateObjectPosition={actions!.updateObjectPosition}
+                            slideObject={object}
                         />
                     ))}
+                </Box>
+            </Grid>
+            <Grid item xs={12} sx={{ borderTop: '2px solid #cecece', paddingTop: '0.5rem' }} onDragOver={onDragOver}>
+                <Box
+                    style={{ display: 'flex', overflowX: 'auto', padding: '1rem', gap: '1rem' }}
+                >
+                    {thumbnails.map((slide, index) => (
+                        <div
+                            key={slide.id}
+                            draggable
+                            onDragStart={(event) => onDragStart(event, index)}
+                            onDragOver={() => onDragOverThumbnail(index)}
+                            onDragEnd={onDragEnd}
+                            style={{ cursor: 'grab', boxShadow: draggingIndex === index ? "0px 0px 8px rgba(0,0,0,0.7)" : "0px 0px 4px #000" }}
+                        >
+                            <Thumbnail
+                                draggingIndex={draggingIndex}
+                                slide={slide}
+                                index={index}
+                                slideDefaultSize={slideDefaultSize}
+                                setSelectedObject={setSelectedObject}
+                            />
+                        </div>
+                    ))}
+                    <Tooltip title={"Adicionar página"} placement="top">
+                        <Box
+                            onClick={addNewSlide}
+                            minWidth={`${slideDefaultSize.width * 0.2}rem`}
+                            minHeight={`${slideDefaultSize.height * 0.2}rem`}
+                            sx={{ cursor: 'pointer', boxShadow: "0px 0px 4px #000" }}
+                            display={"flex"}
+                        >
+                            <AddIcon fontSize={"large"} color="primary" sx={{ margin: 'auto' }} />
+                        </Box>
+                    </Tooltip>
                 </Box>
             </Grid>
             {openConfirmModal && (

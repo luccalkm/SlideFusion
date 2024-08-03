@@ -1,5 +1,6 @@
 import { Box } from "@mui/material";
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useContext } from 'react';
+import { CanvasContext } from "../../../../context/CanvasContext";
 
 type ResizableDraggableProps = {
     children: React.ReactNode;
@@ -9,9 +10,10 @@ type ResizableDraggableProps = {
     onResize: (size: { width: number, height: number }) => void;
     isSelected: boolean;
     onClick: () => void;
+    objectId: string;
 };
 
-const ResizableDraggable = ({ children, initialPosition, initialSize, onDrag, onResize, isSelected, onClick }: ResizableDraggableProps) => {
+const ResizableDraggable = ({ children, initialPosition, objectId, initialSize, onDrag, onResize, isSelected, onClick }: ResizableDraggableProps) => {
     const [position, setPosition] = useState(initialPosition);
     const [size, setSize] = useState(initialSize);
     const [isDragging, setIsDragging] = useState(false);
@@ -19,10 +21,19 @@ const ResizableDraggable = ({ children, initialPosition, initialSize, onDrag, on
     const dragOffset = useRef({ x: 0, y: 0 });
     const resizeStart = useRef({ width: 0, height: 0, x: 0, y: 0 });
     const targetElement = useRef<HTMLElement | null>(null);
-    const effectTimeout = useRef<number | null>(300);
+
+    const { actions } = useContext(CanvasContext);
+
+    const handleDeleteKey = (event: KeyboardEvent) => {
+        if (isSelected && event.key === 'Delete' && actions?.removeSlideObject) {
+            actions.removeSlideObject(objectId);
+        }
+    };
 
     const handleMouseDownDrag = (event: React.MouseEvent) => {
         event.stopPropagation();
+        event.preventDefault();
+
         const element = event.currentTarget as HTMLElement;
         const elementRect = element.getBoundingClientRect();
         dragOffset.current = {
@@ -35,6 +46,8 @@ const ResizableDraggable = ({ children, initialPosition, initialSize, onDrag, on
 
     const handleMouseDownResize = (event: React.MouseEvent) => {
         event.stopPropagation();
+        event.preventDefault();
+        
         resizeStart.current = {
             width: size.width,
             height: size.height,
@@ -57,13 +70,7 @@ const ResizableDraggable = ({ children, initialPosition, initialSize, onDrag, on
             const newY = Math.max(0, Math.min(y, parentRect.height - elementRect.height));
 
             setPosition({ x: newX, y: newY });
-            
-            if (effectTimeout.current !== null) {
-                clearTimeout(effectTimeout.current);
-            }
-            effectTimeout.current = window.setTimeout(() => {
-                onDrag({ x: newX, y: newY });
-            }, 300);
+            onDrag({ x: newX, y: newY });
         }
 
         if (isResizing && targetElement.current) {
@@ -113,6 +120,19 @@ const ResizableDraggable = ({ children, initialPosition, initialSize, onDrag, on
         setSize(initialSize);
     }, [initialSize]);
 
+
+    useEffect(() => {
+        if (isSelected) {
+            window.addEventListener('keydown', handleDeleteKey);
+        } else {
+            window.removeEventListener('keydown', handleDeleteKey);
+        }
+
+        return () => {
+            window.removeEventListener('keydown', handleDeleteKey);
+        };
+    }, [isSelected]);
+
     return (
         <Box
             position={'absolute'}
@@ -134,26 +154,15 @@ const ResizableDraggable = ({ children, initialPosition, initialSize, onDrag, on
         >
             {children}
             {isSelected && (
-                <>
-                    <Box
-                        onMouseDown={handleMouseDownResize}
-                        width={'10px'}
-                        height={'10px'}
-                        position={'absolute'}
-                        left={-10}
-                        top={-10}
-                        style={{ cursor: 'se-resize', backgroundColor: 'gray' }}
-                    />
-                    <Box
-                        onMouseDown={handleMouseDownResize}
-                        width={'10px'}
-                        height={'10px'}
-                        position={'absolute'}
-                        right={-10}
-                        bottom={-10}
-                        style={{ cursor: 'se-resize', backgroundColor: 'gray' }}
-                    />
-                </>
+                <Box
+                    onMouseDown={handleMouseDownResize}
+                    width={'10px'}
+                    height={'10px'}
+                    position={'absolute'}
+                    right={-10}
+                    bottom={-10}
+                    style={{ cursor: 'se-resize', backgroundColor: 'gray' }}
+                />
             )}
         </Box>
     );

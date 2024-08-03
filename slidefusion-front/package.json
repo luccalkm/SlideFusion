@@ -19,6 +19,8 @@
     "@types/react-lottie": "^1.2.10",
     "axios": "^1.7.2",
     "react": "^18.2.0",
+    "react-beautiful-dnd": "^13.1.1",
+    "react-color": "^2.19.3",
     "react-dom": "^18.2.0",
     "react-lottie": "^1.2.4",
     "react-revealjs": "^0.1.2",
@@ -28,6 +30,8 @@
   },
   "devDependencies": {
     "@types/react": "^18.2.66",
+    "@types/react-beautiful-dnd": "^13.1.8",
+    "@types/react-color": "^3.0.12",
     "@types/react-dom": "^18.2.22",
     "@types/reveal.js": "^5.0.3",
     "@types/uuid": "^9.0.8",

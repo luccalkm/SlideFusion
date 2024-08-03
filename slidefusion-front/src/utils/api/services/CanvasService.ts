@@ -1,4 +1,4 @@
-import { Canvas } from "../../types/Entities";
+import { Canvas } from "../../../types/Entities";
 import slidefusionApi from '../axiosConfig';
 
 class CanvasService {

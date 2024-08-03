@@ -1,6 +1,10 @@
+import { MainBox } from "../../common/MainBox";
+
 function Gallery() {
     return (
-        <div>Gallery</div>
+        <MainBox component="main">
+            <div>Gallery</div>
+        </MainBox>
     );
 }
 

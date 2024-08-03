@@ -1,4 +1,3 @@
-// src/styles/theme.ts
 import { createTheme } from '@mui/material/styles';
 
 const mainTheme = createTheme({
@@ -28,6 +27,15 @@ const mainTheme = createTheme({
     easing: {
       sharp: 'cubic-bezier(0.4, 0, 0.6, 1)',
       easeIn: 'cubic-bezier(0.4, 0, 0.2, 1)',
+    },
+  },
+  breakpoints: {
+    values: {
+      xs: 600,
+      sm: 960,
+      md: 1280,
+      lg: 1920,
+      xl: 2560
     },
   },
 });
