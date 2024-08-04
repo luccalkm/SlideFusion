@@ -6,7 +6,7 @@ type Props = {
 };
 
 export const ShapeElement = ({ slideObject }: Props) => {
-    const { size, backgroundColor, roundedDegree } = slideObject;
+    const { size, backgroundColor, roundedDegree, depth } = slideObject;
     return (
         <div>
             <Box
@@ -15,7 +15,8 @@ export const ShapeElement = ({ slideObject }: Props) => {
                 sx={{ 
                     borderRadius: `${roundedDegree}%`,
                     backgroundColor, 
-                    cursor: "pointer"
+                    cursor: "pointer",
+                    zIndex: depth,
                  }}
             />
         </div>

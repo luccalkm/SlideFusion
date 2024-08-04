@@ -34,7 +34,7 @@ export const ShapeToolbar = ({ slideObject }: Props) => {
 
     const handleColorChange = (color: string) => {
         if (!slideObject) return;
-        actions?.updateObjectColor(slideObject.id, color);
+        actions?.updateObjectAttribute(slideObject.id, "backgroundColor", color);
     };
 
     const handleDegreeChange = (event: SelectChangeEvent<number>) => {
@@ -42,15 +42,7 @@ export const ShapeToolbar = ({ slideObject }: Props) => {
 
         const newDegree = parseInt(event.target.value as string, 10);
 
-        actions?.setCanvasData((prevState) => {
-            const updatedSlides = prevState.slides.map((slide) => ({
-                ...slide,
-                slideObjects: slide.slideObjects!.map((obj) =>
-                    obj.id === slideObject.id ? { ...obj, roundedDegree: newDegree } : obj
-                ),
-            }));
-            return { ...prevState, slides: updatedSlides };
-        });
+        actions?.updateObjectAttribute(slideObject.id, "roundedDegree", newDegree);
     };
 
     const handleSizeChange = (axis: "width" | "height") => (
@@ -60,16 +52,9 @@ export const ShapeToolbar = ({ slideObject }: Props) => {
 
         const newValue = parseFloat(event.target.value) || 0;
 
-        actions?.setCanvasData((prevState) => {
-            const updatedSlides = prevState.slides.map((slide) => ({
-                ...slide,
-                slideObjects: slide.slideObjects!.map((obj) =>
-                    obj.id === slideObject.id
-                        ? { ...obj, size: { ...obj.size, [axis]: newValue } }
-                        : obj
-                ),
-            }));
-            return { ...prevState, slides: updatedSlides };
+        actions?.updateObjectAttribute(slideObject.id, "size", {
+            ...slideObject.size,
+            [axis]: newValue,
         });
     };
 

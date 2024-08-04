@@ -26,6 +26,11 @@ export interface TextObject extends SlideObject {
     align: string;
 }
 
+export interface ImageObject extends SlideObject {
+    aspectRatio?: number;
+    backgroundImageUrl: string;
+}
+
 export interface SlideObject {
     id: string;
     type: ESlideObject;
@@ -33,13 +38,6 @@ export interface SlideObject {
     position: Position;
     size: Size;
     backgroundColor: string;
-    backgroundImageUrl?: string;
-    fontFamily?: string;
-    fontSize?: string;
-    fontWeight?: string;
-    italic?: boolean;
-    color?: string;
-    content?: string;
     roundedDegree?: number;
 }
 

@@ -1,4 +1,4 @@
-import { Box, Button, Divider, FormControl, Grid, IconButton, InputLabel, Tooltip } from '@mui/material';
+import { Divider, Grid, IconButton, Tooltip } from '@mui/material';
 import { ESlideObject, SlideObject } from '../../../types/Entities';
 import { ShapeToolbar } from './Toolbar/ShapeToolbar';
 import { CanvasContext } from "../../../context/CanvasContext";
@@ -32,6 +32,18 @@ export const CanvasObjectToolbar = ({ slideObject, setSelectedObject }: Props) =
         }
     };
 
+    const handleDepth = (ammount: number) => {
+        if (!slideObject) 
+            return;
+
+        const newValue = slideObject.depth + ammount;
+
+        if (newValue < 0) 
+            return;
+
+        actions?.updateObjectAttribute(slideObject.id, "depth", newValue);
+    };
+
     const renderToolbarOptions = () => {
         switch (slideObject.type) {
             case ESlideObject.Shape:
@@ -54,8 +66,12 @@ export const CanvasObjectToolbar = ({ slideObject, setSelectedObject }: Props) =
             boxShadow={3}
             width={'80%'}
             zIndex={1}
+            display={'flex'}
+            justifyContent="center"
             sx={{ borderRadius: 2 }}
         >
+            {renderToolbarOptions()}
+            <Divider sx={{ marginX: 1 }} orientation="vertical" flexItem />
             <Grid item display={'flex'} alignItems="center">
                 <Tooltip title="Delete">
                     <IconButton
@@ -77,29 +93,26 @@ export const CanvasObjectToolbar = ({ slideObject, setSelectedObject }: Props) =
                 </Tooltip>
                 <Divider sx={{ marginX: 1 }} orientation="vertical" flexItem />
                 <Grid item>
-                    <InputLabel>Depth</InputLabel>
                     <Tooltip title="Send Backward">
-                        <Button
-                            onClick={() => console.log('Send Backward')}
+                        <IconButton
+                            onClick={() => handleDepth(-1)}
                             aria-label="order-down"
                             size="small"
                         >
                             <ArrowDownward fontSize="small" color="primary" />
-                        </Button>
+                        </IconButton>
                     </Tooltip>
                     <Tooltip title="Bring Forward">
-                        <Button
-                            onClick={() => console.log('Bring Forward')}
+                        <IconButton
+                            onClick={() => handleDepth(1)}
                             aria-label="order-up"
                             size="small"
                         >
                             <ArrowUpward fontSize="small" color="primary" />
-                        </Button>
+                        </IconButton>
                     </Tooltip>
                 </Grid>
-                <Divider sx={{ marginX: 1 }} orientation="vertical" flexItem />
             </Grid>
-            {renderToolbarOptions()}
         </Grid>
     );
 };

@@ -19,22 +19,26 @@ export const CanvasSlideObject = ({
     slideObject,
 }: Props) => {
     const { actions } = useContext(CanvasContext);
-    const [canvasPosition, setCanvasPosition] = useState(slideObject.position || { x: 10 * index, y: 10 * index });
-    const [size, setSize] = useState(slideObject.size || { width: 100, height: 50 });
+    const [canvasPosition, setCanvasPosition] = useState(slideObject.position);
+    const [size, setSize] = useState(slideObject.size);
 
-    const handleDrag = (newPosition: { x: number, y: number }) => {
+    const handleDrag = (newPosition: { x: number; y: number }) => {
         setCanvasPosition(newPosition);
-        actions?.updateObjectSizeOrPosition(slideObject.id, newPosition);
+        actions?.updateObjectAttribute(slideObject.id, 'position', newPosition);
     };
 
-    const handleResize = (newSize: { width: number, height: number }) => {
+    const handleResize = (newSize: { width: number; height: number }) => {
         setSize(newSize);
-        actions?.updateObjectSizeOrPosition(slideObject.id, canvasPosition, newSize);
+        actions?.updateObjectAttribute(slideObject.id, 'size', newSize);
     };
 
     useEffect(() => {
-        setCanvasPosition(slideObject.position);
-        setSize(slideObject.size);
+        if (slideObject.position !== canvasPosition) {
+            setCanvasPosition(slideObject.position);
+        }
+        if (slideObject.size !== size) {
+            setSize(slideObject.size);
+        }
     }, [slideObject.position, slideObject.size]);
 
     return (
@@ -48,7 +52,9 @@ export const CanvasSlideObject = ({
                 onClick={() => setSelectedObject(index)}
                 objectId={slideObject.id}
             >
-                <CanvasObjectMapper slideObject={{ ...slideObject, position: canvasPosition, size }} />
+                <CanvasObjectMapper
+                    slideObject={slideObject}
+                />
             </ResizableDraggable>
             {selectedObject === index && (
                 <CanvasObjectToolbar

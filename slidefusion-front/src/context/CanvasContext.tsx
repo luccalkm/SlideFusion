@@ -17,8 +17,7 @@ export interface ICanvasContext {
         createNewCanvas: () => void;
         loadCanvasDataFromSession: () => void;
         setSelectedSlideIndex: (index: number) => void;
-        updateObjectSizeOrPosition: (objectId: string, newPosition: { x: number, y: number }, newSize?: { width: number, height: number }) => void;
-        updateObjectColor: (objectId: string, newColor: string) => void;
+        updateObjectAttribute: <K extends keyof SlideObject>(objectId: string, key: K, value: SlideObject[K]) => void;
         removeSlide: (id: number) => void;
         clearData: () => void;
     };
@@ -65,59 +64,37 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
 
     const removeSlideObject = (objectId: string) => {
         setCanvasData((prevCanvasData) => {
-            const updatedSlides = prevCanvasData.slides.map((slide, index) => {
-                if (index === selectedSlideIndex) {
-                    return {
-                        ...slide,
-                        slideObjects: slide.slideObjects!.filter((object) => object.id !== objectId)
-                    };
-                }
-                return slide;
-            });
-            return {
-                ...prevCanvasData,
-                slides: updatedSlides
-            };
+            const slide = prevCanvasData.slides[selectedSlideIndex];
+            const updatedSlideObjects = slide.slideObjects!.filter((object) => object.id !== objectId);
+            const updatedSlide = { ...slide, slideObjects: updatedSlideObjects };
+            const updatedSlides = [...prevCanvasData.slides];
+            updatedSlides[selectedSlideIndex] = updatedSlide;
+            return { ...prevCanvasData, slides: updatedSlides };
         });
     };
 
-    const updateObjectSizeOrPosition = (objectId: string, newPosition: { x: number, y: number }, newSize?: { width: number, height: number }) => {
+    const updateObjectAttribute = <K extends keyof SlideObject>(objectId: string, key: K, value: SlideObject[K]) => {
         setCanvasData((prevCanvasData) => {
-            const updatedSlides = prevCanvasData.slides.map((slide, index) => {
-                if (index === selectedSlideIndex) {
-                    return {
-                        ...slide,
-                        slideObjects: slide?.slideObjects?.map((object) =>
-                            object.id === objectId ? { ...object, position: newPosition, size: newSize || object.size } : object
-                        )
-                    };
-                }
-                return slide;
-            });
-            return {
-                ...prevCanvasData,
-                slides: updatedSlides
-            };
-        });
-    };
+            const slide = prevCanvasData.slides[selectedSlideIndex];
+            const objectIndex = slide.slideObjects!.findIndex((object) => object.id === objectId);
 
-    const updateObjectColor = (objectId: string, newColor: string) => {
-        setCanvasData((prevCanvasData) => {
-            const updatedSlides = prevCanvasData.slides.map((slide, index) => {
-                if (index === selectedSlideIndex) {
-                    return {
-                        ...slide,
-                        slideObjects: slide?.slideObjects?.map((object) =>
-                            object.id === objectId ? { ...object, backgroundColor: newColor } : object
-                        )
-                    };
-                }
-                return slide;
-            });
-            return {
-                ...prevCanvasData,
-                slides: updatedSlides
-            };
+            if (objectIndex !== -1) {
+                const updatedObject = {
+                    ...slide.slideObjects![objectIndex],
+                    [key]: value
+                };
+
+                const updatedSlideObjects = [...slide.slideObjects!];
+                updatedSlideObjects[objectIndex] = updatedObject;
+
+                const updatedSlide = { ...slide, slideObjects: updatedSlideObjects };
+                const updatedSlides = [...prevCanvasData.slides];
+                updatedSlides[selectedSlideIndex] = updatedSlide;
+
+                return { ...prevCanvasData, slides: updatedSlides };
+            }
+
+            return prevCanvasData;
         });
     };
 
@@ -137,10 +114,12 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
                     slides: [newSlide]
                 };
             } else {
-                const updatedSlides = prevState.slides.filter((_, i) => i !== id).map((slide, index) => ({
-                    ...slide,
-                    order: index
-                }));
+                const updatedSlides = prevState.slides
+                    .filter((_, i) => i !== id)
+                    .map((slide, index) => ({
+                        ...slide,
+                        order: index
+                    }));
                 const newSelectedSlideIndex = id === prevState.slides.length - 1 ? id - 1 : id;
                 setSelectedSlideIndex(newSelectedSlideIndex);
                 return {
@@ -153,7 +132,8 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
 
     const loadCanvasDataFromSession = () => {
         const storedCanvasData = sessionStorage.getItem('canvasData');
-        if (storedCanvasData) {
+        console.log(storedCanvasData);
+        if (storedCanvasData !== null) {
             setCanvasData(JSON.parse(storedCanvasData));
             setSelectedSlideIndex(selectedSlideIndex || 0);
         } else {
@@ -164,28 +144,26 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
 
     const duplicateSlideObject = (objectId: string) => {
         setCanvasData((prevCanvasData: Canvas) => {
-            const updatedSlides = prevCanvasData.slides.map((slide) => {
-                if (slide.id === prevCanvasData.slides[selectedSlideIndex].id) {
-                    const objectToDuplicate = slide.slideObjects!.find((object) => object.id === objectId);
-                    if (objectToDuplicate) {
-                        const duplicatedObject: SlideObject = {
-                            ...objectToDuplicate,
-                            id: uuidv4(),
-                            position: { x: objectToDuplicate.position.x + 10, y: objectToDuplicate.position.y + 10 },
-                            depth: 1
-                        };
-                        return {
-                            ...slide,
-                            slideObjects: [...slide.slideObjects!, duplicatedObject]
-                        };
-                    }
-                }
-                return slide;
-            });
-            return {
-                ...prevCanvasData,
-                slides: updatedSlides
-            };
+            const slide = prevCanvasData.slides[selectedSlideIndex];
+            const objectToDuplicate = slide.slideObjects!.find((object) => object.id === objectId);
+
+            if (objectToDuplicate) {
+                const duplicatedObject: SlideObject = {
+                    ...objectToDuplicate,
+                    id: uuidv4(),
+                    position: { x: objectToDuplicate.position.x + 10, y: objectToDuplicate.position.y + 10 },
+                    depth: 1
+                };
+
+                const updatedSlideObjects = [...slide.slideObjects!, duplicatedObject];
+                const updatedSlide = { ...slide, slideObjects: updatedSlideObjects };
+                const updatedSlides = [...prevCanvasData.slides];
+                updatedSlides[selectedSlideIndex] = updatedSlide;
+
+                return { ...prevCanvasData, slides: updatedSlides };
+            }
+
+            return prevCanvasData;
         });
     }
 
@@ -207,8 +185,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
                 createNewCanvas, 
                 loadCanvasDataFromSession, 
                 setSelectedSlideIndex, 
-                updateObjectSizeOrPosition, 
-                updateObjectColor, 
+                updateObjectAttribute, 
                 removeSlide, 
                 clearData,
                 removeSlideObject,
