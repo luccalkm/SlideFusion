@@ -48,9 +48,9 @@ export const ImageElement = ({ imageObject }: Props) => {
                 alignItems: 'center',
                 justifyContent: 'center',
                 backgroundImage: `url(${backgroundImageUrl})`,
-                backgroundSize: 'contain',
-                backgroundRepeat: 'no-repeat',
-                backgroundPosition: 'center',
+                backgroundSize: imageObject.backgroundSize || 'contain',
+                backgroundRepeat: imageObject.backgroundRepeat || 'no-repeat',
+                backgroundPosition: imageObject.backgroundPosition || 'center',
             }}
         />
     );

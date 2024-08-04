@@ -52,6 +52,9 @@ export interface ImageObject extends BaseSlideObject {
     type: ESlideObject.Image;
     aspectRatio?: number;
     backgroundImageUrl?: string;
+    backgroundSize ?: string;
+    backgroundRepeat ?: string;
+    backgroundPosition ?: string;
 }
 
 // Interface para futuros objetos de gráfico, com propriedades básicas
@@ -59,6 +62,7 @@ export interface ChartObject extends BaseSlideObject {
     type: ESlideObject.Chart;
     // Outros campos específicos para gráficos podem ser adicionados no futuro
 }
+
 
 // Tipo para qualquer objeto de slide
 export type SlideObject = TextObject | ShapeObject | ImageObject | ChartObject;
