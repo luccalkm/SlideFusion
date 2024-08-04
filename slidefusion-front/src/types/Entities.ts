@@ -1,10 +1,12 @@
+// Enum para definir tipos de objetos de slide
 export enum ESlideObject {
     Text = "Text",
     Image = "Image",
-    Video = "Video",
-    Shape = "Shape"
+    Shape = "Shape",
+    Chart = "Chart" // Preparado para gráficos futuros
 }
 
+// Interfaces para posição e tamanho
 interface Position {
     x: number;
     y: number;
@@ -15,40 +17,62 @@ interface Size {
     height: number;
 }
 
-export interface TextObject extends SlideObject {
+// Interface base para objetos de slide
+export interface BaseSlideObject {
+    id: string;
+    type: ESlideObject;
+    position: Position;
+    size: Size;
+    depth: number;
+    roundedDegree?: number;
+}
+
+// Interface para objetos de texto, com propriedades específicas
+export interface TextObject extends BaseSlideObject {
+    type: ESlideObject.Text;
     content: string;
-    color: string; 
+    color: string;
     fontSize: string;
     fontFamily: string;
     fontWeight: string;
     italic: boolean;
     underline: boolean;
     align: string;
-}
-
-export interface ImageObject extends SlideObject {
-    aspectRatio?: number;
-    backgroundImageUrl: string;
-}
-
-export interface SlideObject {
-    id: string;
-    type: ESlideObject;
-    depth: number;
-    position: Position;
-    size: Size;
     backgroundColor: string;
-    roundedDegree?: number;
 }
 
+// Interface para objetos de forma, com propriedades específicas
+export interface ShapeObject extends BaseSlideObject {
+    type: ESlideObject.Shape;
+    backgroundColor: string;
+}
+
+// Interface para objetos de imagem, com propriedades específicas
+export interface ImageObject extends BaseSlideObject {
+    type: ESlideObject.Image;
+    aspectRatio?: number;
+    backgroundImageUrl?: string;
+}
+
+// Interface para futuros objetos de gráfico, com propriedades básicas
+export interface ChartObject extends BaseSlideObject {
+    type: ESlideObject.Chart;
+    // Outros campos específicos para gráficos podem ser adicionados no futuro
+}
+
+// Tipo para qualquer objeto de slide
+export type SlideObject = TextObject | ShapeObject | ImageObject | ChartObject;
+
+// Interface para representar um slide
 export interface Slide {
     id: string;
     order: number;
-    backgroundColor: string | undefined;
-    backgroundImageUrl?: string | undefined;
+    backgroundColor?: string;
+    backgroundImageUrl?: string;
     slideObjects?: SlideObject[];
 }
 
+// Interface para representar um canvas com múltiplos slides
 export interface Canvas {
     id: string;
     title: string;

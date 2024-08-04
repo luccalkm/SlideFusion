@@ -1,6 +1,6 @@
 import React, { createContext, useEffect, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { Canvas, Slide, SlideObject } from '../types/Entities';
+import { Canvas, ESlideObject, ImageObject, Slide, SlideObject } from '../types/Entities';
 
 export const CanvasContext = createContext<ICanvasContext>({});
 
@@ -19,7 +19,8 @@ export interface ICanvasContext {
         setSelectedSlideIndex: (index: number) => void;
         updateObjectAttribute: <K extends keyof SlideObject>(objectId: string, key: K, value: SlideObject[K]) => void;
         removeSlide: (id: number) => void;
-        clearData: () => void;
+        clearData: () => void;        
+        handleImageUpload: (event: React.ChangeEvent<HTMLInputElement>, objectId?: string) => void;
     };
 }
 
@@ -172,6 +173,63 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
         setCanvasData({} as Canvas);
         setIsLoaded(false);
     };
+    
+    const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>, objectId?: string) => {
+        const file = event.target.files?.[0];
+        if (file && file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                if (typeof reader.result === 'string' && canvasData?.slides) {
+                    const img = new Image();
+                    img.src = reader.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        const maxWidth = 800; 
+                        const maxHeight = 800; 
+                        let width = img.width;
+                        let height = img.height;
+                        
+                        if (width > height) {
+                            if (width > maxWidth) {
+                                height = Math.round((height *= maxWidth / width));
+                                width = maxWidth;
+                            }
+                        } else {
+                            if (height > maxHeight) {
+                                width = Math.round((width *= maxHeight / height));
+                                height = maxHeight;
+                            }
+                        }
+    
+                        canvas.width = width;
+                        canvas.height = height;
+    
+                        if (ctx) {
+                            ctx.drawImage(img, 0, 0, width, height);
+                            const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7); 
+                            setCanvasData((prevState) => {
+                                const updatedSlides = [...prevState.slides];
+                                
+                                if (objectId) {
+                                    const objectIndex = canvasData.slides[selectedSlideIndex].slideObjects!.findIndex(obj => obj.id === objectId);
+                                    if (objectIndex !== -1) {
+                                        updatedSlides[selectedSlideIndex].slideObjects![objectIndex] = {
+                                            ...canvasData.slides[selectedSlideIndex].slideObjects![objectIndex],
+                                            backgroundImageUrl: compressedDataUrl,
+                                        } as ImageObject;
+                                    }
+                                }
+        
+                                return { ...prevState, slides: updatedSlides };
+                            });
+                        }
+                    };
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+    };
 
     return (
         <CanvasContext.Provider value={{
@@ -185,7 +243,8 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
                 createNewCanvas, 
                 loadCanvasDataFromSession, 
                 setSelectedSlideIndex, 
-                updateObjectAttribute, 
+                updateObjectAttribute,
+                handleImageUpload,
                 removeSlide, 
                 clearData,
                 removeSlideObject,

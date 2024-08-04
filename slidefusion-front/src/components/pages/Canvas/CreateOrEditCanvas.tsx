@@ -1,31 +1,20 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import AddIcon from "@mui/icons-material/Add";
-import { useContext, useEffect, useState } from "react";
-import { Box, Button, Grid, ButtonGroup, TextField, Tooltip } from "@mui/material";
-import { useNavigate, useLocation, To } from "react-router-dom";
-import {
-    ArrowBack,
-    ChangeHistoryOutlined,
-    CropOriginalOutlined,
-    CropSquareSharp,
-    Delete,
-    Save,
-    TextFieldsOutlined,
-} from "@mui/icons-material";
+import React, { useContext, useEffect, useState } from "react";
+import { Box, Grid, Tooltip } from "@mui/material";
 import { CanvasContext } from "../../../context/CanvasContext";
 import ConfirmModal from "../../common/ConfirmModal";
 import CanvasSlideObject from "../../canvas/SlideObjects/CanvasSlideObject";
-import { ESlideObject, Slide, SlideObject } from "../../../types/Entities";
+import { Slide } from "../../../types/Entities";
 import { Thumbnail } from "../../canvas/Thumbnail/Thumbnails";
 import { v4 as uuidv4 } from "uuid";
+import AddIcon from '@mui/icons-material/Add';
+import { CanvasHeader } from "../../common/canvas/CanvasHeader";
 
 const CreateOrEditCanvas = () => {
     const [openConfirmModal, setOpenConfirmModal] = useState(false);
     const { state, actions } = useContext(CanvasContext);
     const [selectedObject, setSelectedObject] = useState<number | null>(null);
     const [thumbnails, setThumbnails] = useState<Slide[]>([]);
-    const navigate = useNavigate();
-    const location = useLocation();
     const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
 
     const slideDefaultSize = { width: 60, height: 25 };
@@ -62,34 +51,9 @@ const CreateOrEditCanvas = () => {
         }
     }, [state?.canvasData?.slides, actions]);
 
-    const handleBackClick = () => {
-        navigate((location.key === "default" ? "/" : -1) as To);
-    };
-
     if (!state?.isLoaded || !state?.canvasData?.slides) {
         return <div>Loading...</div>;
     }
-
-    const AddShapeObject = () => {
-        if (!state?.canvasData?.slides) return;
-
-        const newObject: SlideObject = {
-            id: uuidv4(),
-            position: { x: 10, y: 10 },
-            size: { width: 100, height: 50 },
-            type: ESlideObject.Shape,
-            depth: 1,
-            backgroundColor: "#000",
-        };
-        actions?.setCanvasData((prevState) => {
-            const updatedSlides = [...prevState.slides];
-            updatedSlides[state.selectedSlideIndex].slideObjects!.push(newObject);
-            return { ...prevState, slides: updatedSlides };
-        });
-        setSelectedObject(
-            state.canvasData.slides[state.selectedSlideIndex].slideObjects!.length - 1
-        );
-    };
 
     const addNewSlide = () => {
         const newSlide = createNewSlide();
@@ -134,67 +98,10 @@ const CreateOrEditCanvas = () => {
 
     return (
         <Grid onClick={handleClickOutside} marginTop={"5rem"} height={"90vh"}>
-            <Grid item xs={12}>
-                <Grid
-                    container
-                    justifyContent={"space-between"}
-                    alignItems={"center"}
-                    padding={"1rem 2rem"}
-                >
-                    <Grid item>
-                        <Box display="flex" gap={1}>
-                            <Button
-                                size="large"
-                                variant="outlined"
-                                onClick={handleBackClick}
-                            >
-                                <ArrowBack />
-                            </Button>
-                            <Button
-                                size="large"
-                                variant="outlined"
-                                color="error"
-                                onClick={() => setOpenConfirmModal(true)}
-                            >
-                                <Delete />
-                            </Button>
-                            <Button size="large" variant="outlined" color="success">
-                                <Save />
-                            </Button>
-                        </Box>
-                    </Grid>
-                    <Grid item display={"flex"} gap={2} alignItems={"center"}>
-                        <TextField
-                            variant="outlined"
-                            size="small"
-                            placeholder="Nova apresentação"
-                            value={state?.canvasData?.title || ""}
-                            onChange={(e) =>
-                                actions?.setCanvasData({
-                                    ...state!.canvasData!,
-                                    title: e.target.value,
-                                })
-                            }
-                        />
-                    </Grid>
-                    <Grid item>
-                        <ButtonGroup>
-                            <Button>
-                                <TextFieldsOutlined />
-                            </Button>
-                            <Button onClick={AddShapeObject}>
-                                <CropSquareSharp />
-                            </Button>
-                            <Button>
-                                <ChangeHistoryOutlined />
-                            </Button>
-                            <Button>
-                                <CropOriginalOutlined />
-                            </Button>
-                        </ButtonGroup>
-                    </Grid>
-                </Grid>
-            </Grid>
+            <CanvasHeader
+                setOpenConfirmModal={setOpenConfirmModal}
+                setSelectedObject={setSelectedObject}
+            />
             <Grid
                 height={"70%"}
                 container

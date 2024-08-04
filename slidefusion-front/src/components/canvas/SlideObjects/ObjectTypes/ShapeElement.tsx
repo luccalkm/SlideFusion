@@ -1,8 +1,8 @@
 import { Box } from "@mui/material";
-import { SlideObject } from "../../../../types/Entities";
+import { ShapeObject } from "../../../../types/Entities";
 
 type Props = {
-    slideObject: SlideObject;
+    slideObject: ShapeObject;
 };
 
 export const ShapeElement = ({ slideObject }: Props) => {
